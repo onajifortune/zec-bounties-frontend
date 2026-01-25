@@ -161,7 +161,7 @@ export default function ClientDashboard() {
                   </CardDescription>
                 </div>
               </div>
-              <div className="grid grid-cols-3 imd:grid-cols-5 gap-2 mt-4 gap-2 mt-4">
+              <div className="grid grid-cols-3 imd:grid-cols-5 gap-2 mt-4">
                 {(
                   ["all", "TO_DO", "IN_PROGRESS", "DONE", "CANCELLED"] as const
                 ).map((status) => (
