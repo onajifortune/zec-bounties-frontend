@@ -9,6 +9,7 @@ import type {
   BountyApplication,
   WorkSubmission,
 } from "./types";
+import { backendUrl } from "./config";
 
 interface BountyCategory {
   id: number;
@@ -1169,8 +1170,9 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string,
   ): Promise<{ success: boolean; user?: any }> => {
+    console.log(process.env.NODE_ENV);
     try {
-      const res = await fetch("http://localhost:9000/auth/login", {
+      const res = await fetch(`${backendUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

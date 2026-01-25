@@ -124,26 +124,6 @@ export function LoginForm() {
                 {isLoading ? "Signing in..." : "Login with GitHub"}
               </Button>
             </a>
-
-            <div className="p-4 rounded-lg bg-muted/30 border border-dashed space-y-2 mt-4">
-              <p className="text-xs font-semibold text-muted-foreground">
-                Demo Credentials:
-              </p>
-              <div className="space-y-1.5 text-xs font-mono">
-                <div>
-                  <span className="text-muted-foreground">Hunter:</span>{" "}
-                  hunter@example.com
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Admin:</span>{" "}
-                  admin@example.com
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Password:</span>{" "}
-                  demo123
-                </div>
-              </div>
-            </div>
           </form>
         </CardContent>
       </Card>
