@@ -9,7 +9,7 @@ import type {
   BountyApplication,
   WorkSubmission,
 } from "./types";
-import { backendUrl } from "./configENV";
+import { backendUrl, backendWebSpocketUrl } from "./configENV";
 
 interface BountyCategory {
   id: number;
@@ -150,7 +150,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch(
-        `http://localhost:9000/api/bounties/${bountyId}/authorize-payment`,
+        `${backendUrl}/api/bounties/${bountyId}/authorize-payment`,
         {
           method: "PUT",
           headers: getAuthHeaders(),
@@ -187,19 +187,16 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!bounty || !bounty.assigneeUser?.z_address) return;
 
     try {
-      await fetch(
-        "http://localhost:9000/api/bounties/process-instant-payment",
-        {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({
-            address: bounty.assigneeUser.z_address,
-            amount: Math.floor(bounty.bountyAmount * 100000000), // Convert to zatoshis
-            memo: `Bounty: ${bounty.title} (ID: ${bounty.id})`,
-            bountyId: bountyId,
-          }),
-        },
-      );
+      await fetch(`${backendUrl}/api/bounties/process-instant-payment`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          address: bounty.assigneeUser.z_address,
+          amount: Math.floor(bounty.bountyAmount * 100000000), // Convert to zatoshis
+          memo: `Bounty: ${bounty.title} (ID: ${bounty.id})`,
+          bountyId: bountyId,
+        }),
+      });
     } catch (error) {
       console.error("Failed to process instant payment:", error);
     }
@@ -211,7 +208,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch(
-        `http://localhost:9000/api/transactions/authorize-payment`,
+        `${backendUrl}/api/transactions/authorize-payment`,
         {
           method: "POST",
           headers: getAuthHeaders(),
@@ -228,7 +225,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
   const fetchTransactionHashes = async () => {
     try {
-      const response = await fetch("http://localhost:9000/api/transactions/", {
+      const response = await fetch(`${backendUrl}/api/transactions/`, {
         headers: getAuthHeaders(),
       });
 
@@ -249,7 +246,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch(
-        `http://localhost:9000/api/bounties/${id}/authorize-payment`,
+        `${backendUrl}/api/bounties/${id}/authorize-payment`,
         {
           method: "PUT",
           headers: getAuthHeaders(),
@@ -321,7 +318,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
       }
 
       const res = await fetch(
-        "http://localhost:9000/api/bounties/process-batch-payments",
+        `${backendUrl}/api/bounties/process-batch-payments`,
         {
           method: "POST",
           headers: getAuthHeaders(),
@@ -352,18 +349,15 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
         // Update bounties to mark them as paid
         for (const bountyId of batchBountyIds) {
-          await fetch(
-            `http://localhost:9000/api/bounties/${bountyId}/mark-paid`,
-            {
-              method: "PUT",
-              headers: getAuthHeaders(),
-              body: JSON.stringify({
-                isPaid: true,
-                paymentBatchId: result.batchId,
-                paidAt: new Date().toISOString(),
-              }),
-            },
-          );
+          await fetch(`${backendUrl}/api/bounties/${bountyId}/mark-paid`, {
+            method: "PUT",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+              isPaid: true,
+              paymentBatchId: result.batchId,
+              paidAt: new Date().toISOString(),
+            }),
+          });
         }
 
         // Refresh bounties
@@ -394,7 +388,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
   const fetchCategories = async () => {
     setCategoriesLoading(true);
     try {
-      const res = await fetch("http://localhost:9000/api/bounties/categories", {
+      const res = await fetch(`${backendUrl}/api/bounties/categories`, {
         headers: getAuthHeaders(),
       });
 
@@ -416,7 +410,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const res = await fetch("http://localhost:9000/api/bounties/categories", {
+      const res = await fetch(`${backendUrl}/api/bounties/categories`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({ name }),
@@ -446,14 +440,11 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const res = await fetch(
-        `http://localhost:9000/api/bounties/categories/${id}`,
-        {
-          method: "PUT",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ name }),
-        },
-      );
+      const res = await fetch(`${backendUrl}/api/bounties/categories/${id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ name }),
+      });
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -478,13 +469,10 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const res = await fetch(
-        `http://localhost:9000/api/bounties/categories/${id}`,
-        {
-          method: "DELETE",
-          headers: getAuthHeaders(),
-        },
-      );
+      const res = await fetch(`${backendUrl}/api/bounties/categories/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -502,7 +490,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
-      const res = await fetch("http://localhost:9000/api/bounties/users", {
+      const res = await fetch(`${backendUrl}/api/bounties/users`, {
         headers: getAuthHeaders(),
       });
 
@@ -528,7 +516,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch(
-        `http://localhost:9000/api/bounties/${bountyId}/applications`,
+        `${backendUrl}/api/bounties/${bountyId}/applications`,
         {
           headers: getAuthHeaders(),
         },
@@ -556,12 +544,9 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) return;
 
     try {
-      const res = await fetch(
-        "http://localhost:9000/api/bounties/my-applications",
-        {
-          headers: getAuthHeaders(),
-        },
-      );
+      const res = await fetch(`${backendUrl}/api/bounties/my-applications`, {
+        headers: getAuthHeaders(),
+      });
 
       if (!res.ok) throw new Error("Failed to fetch applications");
 
@@ -577,12 +562,9 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser || currentUser.role !== "ADMIN") return;
 
     try {
-      const res = await fetch(
-        "http://localhost:9000/api/bounties/all-applications",
-        {
-          headers: getAuthHeaders(),
-        },
-      );
+      const res = await fetch(`${backendUrl}/api/bounties/all-applications`, {
+        headers: getAuthHeaders(),
+      });
 
       if (!res.ok) throw new Error("Failed to fetch applications");
 
@@ -625,7 +607,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch(
-        `http://localhost:9000/api/bounties/applications/${applicationId}`,
+        `${backendUrl}/api/bounties/applications/${applicationId}`,
         {
           method: "PUT",
           headers: {
@@ -662,7 +644,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch(
-        `http://localhost:9000/api/bounties/applications/${applicationId}`,
+        `${backendUrl}/api/bounties/applications/${applicationId}`,
         {
           method: "PUT",
           headers: {
@@ -701,14 +683,11 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) throw new Error("User not authenticated");
 
     try {
-      const res = await fetch(
-        `http://localhost:9000/api/bounties/${bountyId}/submit`,
-        {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify(submissionData),
-        },
-      );
+      const res = await fetch(`${backendUrl}/api/bounties/${bountyId}/submit`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(submissionData),
+      });
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -728,7 +707,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch(
-        `http://localhost:9000/api/bounties/${bountyId}/submissions`,
+        `${backendUrl}/api/bounties/${bountyId}/submissions`,
         {
           headers: getAuthHeaders(),
         },
@@ -751,12 +730,9 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser || currentUser.role !== "ADMIN") return;
 
     try {
-      const res = await fetch(
-        "http://localhost:9000/api/transactions/balance",
-        {
-          headers: getAuthHeaders(),
-        },
-      );
+      const res = await fetch(`${backendUrl}/api/transactions/balance`, {
+        headers: getAuthHeaders(),
+      });
 
       if (res.ok) {
         const data = await res.json();
@@ -772,12 +748,9 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser || currentUser.role !== "ADMIN") return;
 
     try {
-      const res = await fetch(
-        "http://localhost:9000/api/transactions/addresses",
-        {
-          headers: getAuthHeaders(),
-        },
-      );
+      const res = await fetch(`${backendUrl}/api/transactions/addresses`, {
+        headers: getAuthHeaders(),
+      });
 
       if (res.ok) {
         const data = await res.json();
@@ -800,7 +773,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch(
-        `http://localhost:9000/api/bounties/submissions/${submissionId}/review`,
+        `${backendUrl}/api/bounties/submissions/${submissionId}/review`,
         {
           method: "PATCH",
           headers: getAuthHeaders(),
@@ -837,7 +810,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
       if (savedToken) {
         try {
-          const res = await fetch("http://localhost:9000/auth/me", {
+          const res = await fetch(`${backendUrl}/auth/me`, {
             headers: { Authorization: `Bearer ${savedToken}` },
           });
 
@@ -908,7 +881,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
   // WebSocket connection
   useEffect(() => {
     if (!currentUser) return;
-    const ws = new WebSocket("ws://localhost:9000");
+    const ws = new WebSocket(`${backendWebSpocketUrl}`);
 
     ws.onopen = () => {
       ws.send(
@@ -1015,7 +988,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
   const fetchBounties = async () => {
     setBountiesLoading(true);
     try {
-      const res = await fetch("http://localhost:9000/api/bounties", {
+      const res = await fetch(`${backendUrl}/api/bounties`, {
         headers: getAuthHeaders(),
       });
 
@@ -1036,7 +1009,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) return;
 
     try {
-      const res = await fetch("http://localhost:9000/api/bounties", {
+      const res = await fetch(`${backendUrl}/api/bounties`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -1071,7 +1044,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) return;
 
     try {
-      const res = await fetch(`http://localhost:9000/api/bounties/${id}`, {
+      const res = await fetch(`${backendUrl}/api/bounties/${id}`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -1102,14 +1075,11 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser || currentUser.role !== "ADMIN") return;
 
     try {
-      const res = await fetch(
-        `http://localhost:9000/api/bounties/${id}/status`,
-        {
-          method: "PATCH",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ status }),
-        },
-      );
+      const res = await fetch(`${backendUrl}/api/bounties/${id}/status`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status }),
+      });
 
       if (!res.ok) throw new Error("Failed to update bounty status");
 
@@ -1128,7 +1098,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser || currentUser.role !== "ADMIN") return;
 
     try {
-      const res = await fetch(`http://localhost:9000/api/bounties/${id}`, {
+      const res = await fetch(`${backendUrl}/api/bounties/${id}`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({ isApproved: approved }),
@@ -1151,7 +1121,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser || currentUser.role !== "ADMIN") return;
 
     try {
-      const res = await fetch(`http://localhost:9000/api/bounties/${id}`, {
+      const res = await fetch(`${backendUrl}/api/bounties/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
@@ -1170,7 +1140,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string,
   ): Promise<{ success: boolean; user?: any }> => {
-    console.log(process.env.NODE_ENV, "here");
     try {
       const res = await fetch(`${backendUrl}/auth/login`, {
         method: "POST",
@@ -1218,7 +1187,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) return;
 
     try {
-      const res = await fetch("http://localhost:9000/api/bounties/apply", {
+      const res = await fetch(`${backendUrl}/api/bounties/apply`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -1254,7 +1223,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) return;
 
     try {
-      const res = await fetch("http://localhost:9000/auth/verify-zaddress", {
+      const res = await fetch(`${backendUrl}/auth/verify-zaddress`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -1281,7 +1250,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) return;
 
     try {
-      const res = await fetch("http://localhost:9000/auth/update-zaddress", {
+      const res = await fetch(`${backendUrl}/auth/update-zaddress`, {
         method: "PATCH",
         headers: getAuthHeaders(),
         body: JSON.stringify({

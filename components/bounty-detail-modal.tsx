@@ -400,7 +400,11 @@ export function BountyDetailModal({
               </h4>
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 border">
-                  <AvatarImage src={"/placeholder-user.jpg"} />
+                  <AvatarImage
+                    src={
+                      bounty.createdByUser?.avatar || "/placeholder-user.jpg"
+                    }
+                  />
                   <AvatarFallback>
                     {bounty.createdByUser?.name?.charAt(0) || "?"}
                   </AvatarFallback>
@@ -420,7 +424,11 @@ export function BountyDetailModal({
                 </h4>
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5">
                   <Avatar className="h-10 w-10 border-2 border-primary/20">
-                    <AvatarImage src={"/placeholder-user.jpg"} />
+                    <AvatarImage
+                      src={
+                        bounty.createdByUser?.avatar || "/placeholder-user.jpg"
+                      }
+                    />
                     <AvatarFallback>
                       {bounty.assigneeUser?.name?.charAt(0) || "?"}
                     </AvatarFallback>

@@ -11,8 +11,8 @@ const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "ZEC Bounties | Developer Bounty Platform",
-  description: "Manage and discover high-value developer bounties",
+  title: "ZEC Bounties | Bounty Platform",
+  description: "A privacy-first bounty platform powered by Zcash.",
   generator: "v0.app",
 };
 

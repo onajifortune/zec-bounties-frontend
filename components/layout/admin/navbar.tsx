@@ -78,12 +78,12 @@ export function AdminNavbar({
             >
               Bounties
             </Link>
-            <Link
+            {/* <Link
               href="/admin/leaderboard"
               className="transition-colors hover:text-primary"
             >
               Leaderboard
-            </Link>
+            </Link> */}
           </div>
 
           {/* Desktop Right Side */}
@@ -131,7 +131,9 @@ export function AdminNavbar({
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src="/abstract-geometric-shapes.png"
+                      src={
+                        currentUser?.avatar || "/abstract-geometric-shapes.png"
+                      }
                       alt="User"
                     />
                     <AvatarFallback>JD</AvatarFallback>
@@ -205,13 +207,13 @@ export function AdminNavbar({
                     >
                       Bounties
                     </Link>
-                    <Link
+                    {/* <Link
                       href="/admin/leaderboard"
                       className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Leaderboard
-                    </Link>
+                    </Link> */}
                   </div>
 
                   {/* Divider */}
@@ -243,7 +245,10 @@ export function AdminNavbar({
                   <div className="flex items-center gap-3 px-3 py-2">
                     <Avatar className="h-10 w-10">
                       <AvatarImage
-                        src="/abstract-geometric-shapes.png"
+                        src={
+                          currentUser?.avatar ||
+                          "/abstract-geometric-shapes.png"
+                        }
                         alt="User"
                       />
                       <AvatarFallback>JD</AvatarFallback>

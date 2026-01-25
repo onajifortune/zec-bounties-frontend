@@ -268,7 +268,7 @@ export default function MarketplacePage() {
               <div className="flex items-center justify-between pb-4 border-b">
                 <h2 className="text-xl font-bold">
                   {activeCategory === "All"
-                    ? "Featured Bounties"
+                    ? "All Bounties"
                     : `${activeCategory} Bounties`}
                 </h2>
                 <div className="flex items-center gap-2">

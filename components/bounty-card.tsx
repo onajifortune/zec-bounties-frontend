@@ -144,7 +144,9 @@ export function BountyCard({
         >
           <div className="flex items-center p-4 gap-4">
             <Avatar className="h-10 w-10 border shrink-0">
-              <AvatarImage src={"/placeholder-user.jpg"} />
+              <AvatarImage
+                src={bounty.createdByUser?.avatar || "/placeholder-user.jpg"}
+              />
               <AvatarFallback>{"None"}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -162,7 +164,11 @@ export function BountyCard({
                 </span>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6 border-primary/20 ring-2 ring-primary/5">
-                    <AvatarImage src={"/placeholder-user.jpg"} />
+                    <AvatarImage
+                      src={
+                        bounty.createdByUser?.avatar || "/placeholder-user.jpg"
+                      }
+                    />
                     <AvatarFallback>{"None"}</AvatarFallback>
                   </Avatar>
                   <span className="text-[11px] font-semibold text-primary">
@@ -324,7 +330,9 @@ export function BountyCard({
         <CardHeader className="p-4 flex-row items-start justify-between space-y-0">
           <div className="flex gap-3 items-center">
             <Avatar className="h-10 w-10 border">
-              <AvatarImage src={"/placeholder-user.jpg"} />
+              <AvatarImage
+                src={bounty.createdByUser?.avatar || "/placeholder-user.jpg"}
+              />
               <AvatarFallback>{"None"}</AvatarFallback>
             </Avatar>
             <div>
@@ -388,7 +396,11 @@ export function BountyCard({
             {bounty.assigneeUser?.name ? (
               <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
                 <Avatar className="h-5 w-5 border-white">
-                  <AvatarImage src={"/placeholder-user.jpg"} />
+                  <AvatarImage
+                    src={
+                      bounty.createdByUser?.avatar || "/placeholder-user.jpg"
+                    }
+                  />
                   <AvatarFallback>{"None"}</AvatarFallback>
                 </Avatar>
                 <span className="text-[10px] font-bold text-primary">

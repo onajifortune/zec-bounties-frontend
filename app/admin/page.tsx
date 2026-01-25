@@ -393,7 +393,10 @@ export default function AdminDashboard() {
                                 <div className="flex items-center gap-2">
                                   <Avatar className="h-6 w-6 border">
                                     <AvatarImage
-                                      src={"/placeholder-user.jpg"}
+                                      src={
+                                        bounty.createdByUser?.avatar ||
+                                        "/placeholder-user.jpg"
+                                      }
                                     />
                                     <AvatarFallback>
                                       {bounty.assigneeUser?.name?.[0] || "?"}
