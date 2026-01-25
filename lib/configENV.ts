@@ -1,4 +1,4 @@
 export const backendUrl =
-  process.env.NODE_ENV === "production"
-    ? "https://zec-bounties-backend.onrender.com/"
-    : "http://localhost:9000";
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:9000"
+    : "https://zec-bounties-backend.onrender.com/";
