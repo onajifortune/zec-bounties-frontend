@@ -9,7 +9,7 @@ import type {
   BountyApplication,
   WorkSubmission,
 } from "./types";
-import { backendUrl } from "./config";
+import { backendUrl } from "./configENV";
 
 interface BountyCategory {
   id: number;
