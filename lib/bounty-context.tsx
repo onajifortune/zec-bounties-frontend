@@ -1170,7 +1170,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string,
   ): Promise<{ success: boolean; user?: any }> => {
-    console.log(process.env.NODE_ENV, backendUrl, "here");
+    console.log(process.env.NODE_ENV, "here");
     try {
       const res = await fetch(`${backendUrl}/auth/login`, {
         method: "POST",
