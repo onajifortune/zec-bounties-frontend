@@ -79,7 +79,7 @@ export function LoginForm() {
               </Alert>
             )}
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -111,7 +111,7 @@ export function LoginForm() {
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
+            </Button> */}
 
             <a
               href={`${backendUrl}/auth/github`}
