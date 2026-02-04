@@ -55,7 +55,7 @@ export function LoginForm() {
     }
   };
 
-  console.log(process.env.NODE_ENV);
+  console.log(process.env.NODE_ENV, backendUrl);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
