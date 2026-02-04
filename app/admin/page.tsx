@@ -20,12 +20,15 @@ import {
   Settings2,
   UserPlus,
   AlertTriangle,
-  DollarSign,
   Upload,
   ExternalLink,
   FileText,
   XCircle,
   Clock,
+  Loader2,
+  RefreshCw,
+  CreditCard,
+  Shield,
 } from "lucide-react";
 import {
   Table,
@@ -58,6 +61,9 @@ import { useBounty } from "@/lib/bounty-context";
 import { BountyStatus, WorkSubmission } from "@/lib/types";
 import { formatStatus } from "@/lib/utils";
 import { format } from "date-fns";
+import { GlobalSettingsModal } from "@/components/settings/global-settings-modal";
+import { PaymentTxIdsTable } from "@/components/transactions/payment-tx-table";
+import { BountyAdminCard } from "@/components/admin/bounty-admin-card";
 
 export default function AdminDashboard() {
   const {
@@ -71,9 +77,12 @@ export default function AdminDashboard() {
     fetchBountyApplications,
     fetchWorkSubmissions,
     reviewWorkSubmission,
+    paymentIDs,
+    fetchTransactionHashes,
+    authorizeDuePayment,
   } = useBounty();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "finance">(
+  const [activeTab, setActiveTab] = useState<"overview" | "payments" | "txids">(
     "overview",
   );
   const [showAdminBountyModal, setShowAdminBountyModal] = useState(false);
@@ -84,6 +93,9 @@ export default function AdminDashboard() {
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [allSubmissions, setAllSubmissions] = useState<WorkSubmission[]>([]);
+  const [showGlobalSettings, setShowGlobalSettings] = useState(false);
+  const [isFetchingTxHashes, setIsFetchingTxHashes] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // Load all submissions on mount for the indicators
   useEffect(() => {
@@ -177,19 +189,92 @@ export default function AdminDashboard() {
     }
   }, [isManagingSubmissions, selectedBounty]);
 
+  const handleFetchTransactionHashes = async () => {
+    setIsFetchingTxHashes(true);
+    try {
+      await fetchTransactionHashes();
+    } catch (error) {
+      console.error("Failed to fetch transaction hashes:", error);
+    } finally {
+      setIsFetchingTxHashes(false);
+    }
+  };
+
+  const handlePaymentAuthorization = async () => {
+    setIsUpdating(true);
+    setPaymentSuccess(false);
+    try {
+      await authorizeDuePayment();
+      setPaymentSuccess(true);
+      // Auto-hide success state after 3 seconds
+      setTimeout(() => setPaymentSuccess(false), 3000);
+    } catch (error) {
+      console.error("Payment authorization failed:", error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const totalRewards = bounties.reduce((sum, b) => sum + b.bountyAmount, 0);
   const activeBounties = bounties.filter(
     (b) => b.status === "TO_DO" || b.status === "IN_PROGRESS",
   ).length;
   const totalHunters = nonAdminUsers.filter((u) => u.role === "CLIENT").length;
-  const totalPayouts = bounties
-    .filter((b) => b.status === "DONE")
-    .reduce((sum, b) => sum + b.bountyAmount, 0);
-  const platformFee = totalPayouts * 0.1;
+  const completedBounties = bounties.filter(
+    (b) => b.status === "DONE" && !b.isPaid,
+  );
+
+  // Enhanced payment processing button component
+  const PaymentProcessingButton = () => {
+    if (paymentSuccess) {
+      return (
+        <Button size="sm" disabled className="bg-green-600 hover:bg-green-600">
+          <CheckCircle2 className="w-4 h-4 mr-2 animate-pulse" />
+          Payment Authorized!
+        </Button>
+      );
+    }
+
+    if (isUpdating) {
+      return (
+        <Button
+          size="sm"
+          disabled
+          className="bg-gradient-to-r from-purple-600 to-blue-600"
+        >
+          <div className="flex items-center">
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            <span className="relative">
+              Processing
+              <span className="absolute -right-4 animate-pulse">...</span>
+            </span>
+          </div>
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        size="sm"
+        onClick={handlePaymentAuthorization}
+        disabled={completedBounties.length === 0}
+        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
+      >
+        <CreditCard className="w-4 h-4 mr-2" />
+        Authorize Payment
+      </Button>
+    );
+  };
 
   const tabs = [
     { id: "overview", label: "Overview", icon: BarChart3 },
-    { id: "finance", label: "Finance", icon: DollarSign },
+    {
+      id: "payments",
+      label: "Payments Due",
+      icon: CreditCard,
+      badge: completedBounties.length > 0 ? completedBounties.length : null,
+    },
+    { id: "txids", label: "Transactions", icon: RefreshCw },
   ];
 
   return (
@@ -212,7 +297,11 @@ export default function AdminDashboard() {
               >
                 <UserPlus className="h-4 w-4" /> New Bounty
               </Button>
-              <Button variant="outline" className="gap-2 bg-transparent">
+              <Button
+                variant="outline"
+                className="gap-2 bg-transparent"
+                onClick={() => setShowGlobalSettings(true)}
+              >
                 <Settings2 className="h-4 w-4" /> Global Settings
               </Button>
             </div>
@@ -225,7 +314,7 @@ export default function AdminDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors relative ${
                     activeTab === tab.id
                       ? "border-primary text-foreground"
                       : "border-transparent text-muted-foreground hover:text-foreground"
@@ -233,6 +322,11 @@ export default function AdminDashboard() {
                 >
                   <Icon className="h-4 w-4" />
                   {tab.label}
+                  {tab.badge && (
+                    <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                      {tab.badge}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -246,7 +340,7 @@ export default function AdminDashboard() {
                     <CardTitle className="text-sm font-medium">
                       Total Rewards
                     </CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
@@ -580,112 +674,148 @@ export default function AdminDashboard() {
             </>
           )}
 
-          {activeTab === "finance" && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <Card className="bg-card/50">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                    <CardTitle className="text-sm font-medium">
-                      Total Payouts
-                    </CardTitle>
-                    <DollarSign className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-500">
-                      ${totalPayouts.toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      All time
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-card/50">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                    <CardTitle className="text-sm font-medium">
-                      Platform Revenue
-                    </CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      ${platformFee.toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      10% fee on payouts
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-card/50">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                    <CardTitle className="text-sm font-medium">
-                      Pending Payouts
-                    </CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">$8,500</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Awaiting completion
-                    </p>
-                  </CardContent>
-                </Card>
+          {activeTab === "payments" && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                  Completed Bounties Awaiting Payment (
+                  {completedBounties.length})
+                </h2>
+                <div className="flex gap-2">
+                  <PaymentProcessingButton />
+                </div>
               </div>
 
-              <Card className="bg-card/50 overflow-hidden border-muted">
-                <CardHeader className="p-6 border-b">
-                  <div>
-                    <CardTitle>Transaction History</CardTitle>
-                    <CardDescription>
-                      Track all payouts and platform fees
-                    </CardDescription>
+              {/* Processing Status Card */}
+              {(isUpdating || paymentSuccess) && (
+                <div
+                  className={`mb-6 p-4 rounded-lg border-2 ${
+                    paymentSuccess
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                  } transition-all duration-300`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {isUpdating ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                      ) : (
+                        <CheckCircle2 className="w-5 h-5 text-green-600 animate-pulse" />
+                      )}
+                      <div>
+                        <h3
+                          className={`font-medium ${
+                            paymentSuccess
+                              ? "text-green-800 dark:text-green-200"
+                              : "text-blue-800 dark:text-blue-200"
+                          }`}
+                        >
+                          {isUpdating
+                            ? "Processing Payments..."
+                            : "Payments Authorized Successfully!"}
+                        </h3>
+                        <p
+                          className={`text-sm ${
+                            paymentSuccess
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-blue-600 dark:text-blue-400"
+                          }`}
+                        >
+                          {isUpdating
+                            ? `Authorizing payments for ${completedBounties.length} bounties`
+                            : "All pending payments have been processed"}
+                        </p>
+                      </div>
+                    </div>
+                    {isUpdating && (
+                      <div className="text-blue-600 text-sm font-mono">
+                        {completedBounties.length} pending...
+                      </div>
+                    )}
                   </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader className="bg-muted/50">
-                      <TableRow>
-                        <TableHead className="py-3">Bounty</TableHead>
-                        <TableHead>Hunter</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Fee</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {bounties
-                        .filter((b) => b.status === "DONE")
-                        .map((bounty) => (
-                          <TableRow
-                            key={bounty.id}
-                            className="hover:bg-muted/30 transition-colors"
-                          >
-                            <TableCell className="font-medium py-4">
-                              <span className="line-clamp-1">
-                                {bounty.title}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-sm">
-                              {bounty.assigneeUser?.name || "Unassigned"}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm text-green-600">
-                              +${bounty.bountyAmount.toLocaleString()}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm text-red-600">
-                              -${(bounty.bountyAmount * 0.1).toLocaleString()}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              Jan {Math.floor(Math.random() * 28) + 1}, 2024
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">Paid</Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+                </div>
+              )}
+
+              {completedBounties.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {completedBounties.map((bounty) => (
+                    <div
+                      key={bounty.id}
+                      className={`relative ${
+                        isUpdating ? "opacity-70 pointer-events-none" : ""
+                      } transition-opacity duration-200`}
+                    >
+                      <BountyAdminCard bounty={bounty} />
+                      {isUpdating && (
+                        <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 flex items-center justify-center rounded-lg">
+                          <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Shield className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-600 mb-4" />
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+                    No payments due
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    All completed bounties have been paid.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "txids" && (
+            <>
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                    Transaction History ({paymentIDs?.length || 0})
+                  </h2>
+                  <Button
+                    onClick={handleFetchTransactionHashes}
+                    disabled={isFetchingTxHashes}
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    {isFetchingTxHashes ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    {isFetchingTxHashes ? "Fetching..." : "Refresh"}
+                  </Button>
+                </div>
+
+                {isFetchingTxHashes && (
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                      <span className="text-blue-800 dark:text-blue-200 text-sm">
+                        Fetching latest transaction hashes...
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {paymentIDs && paymentIDs.length > 0 ? (
+                  <PaymentTxIdsTable paymentIDs={paymentIDs} />
+                ) : (
+                  <div className="text-center py-12">
+                    <RefreshCw className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-600 mb-4" />
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+                      No payments processed
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      No transaction IDs available at this time.
+                    </p>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -693,6 +823,11 @@ export default function AdminDashboard() {
         <AdminBountyModal
           open={showAdminBountyModal}
           onOpenChange={setShowAdminBountyModal}
+        />
+
+        <GlobalSettingsModal
+          open={showGlobalSettings}
+          onOpenChange={setShowGlobalSettings}
         />
 
         <Dialog

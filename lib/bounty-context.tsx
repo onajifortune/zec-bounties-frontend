@@ -8,12 +8,36 @@ import type {
   BountyFormData,
   BountyApplication,
   WorkSubmission,
+  ZcashParamsFormData,
 } from "./types";
 import { backendUrl, backendWebSpocketUrl } from "./configENV";
 
 interface BountyCategory {
   id: number;
   name: string;
+}
+
+interface ZcashParams {
+  id: number;
+  chain: string;
+  serverUrl: string;
+  accountName: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+  owner?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+interface ImportWalletData {
+  accountName: string;
+  seedPhrase: string;
+  chain: string;
+  serverUrl: string;
+  birthdayHeight?: number;
 }
 
 interface BountyContextType {
@@ -52,6 +76,38 @@ interface BountyContextType {
   fetchTransactionHashes: () => Promise<void>;
   applyToBounty: (bountyId: string, message: string) => Promise<void>;
   editBounty: (id: string, data: Partial<BountyFormData>) => void;
+
+  // Zcash Params
+  zcashParams: ZcashParams[];
+  zcashParamsLoading: boolean;
+  fetchZcashParams: () => Promise<void>;
+  fetchAllZcashParams: () => Promise<void>; // Admin only
+  getZcashParam: (accountName: string) => Promise<ZcashParams | null>;
+  createZcashParams: (
+    data: Omit<
+      ZcashParams,
+      "id" | "ownerId" | "createdAt" | "updatedAt" | "owner"
+    >,
+  ) => Promise<ZcashParams>;
+  updateZcashParams: (
+    accountName: string,
+    data: Partial<
+      Omit<ZcashParams, "id" | "ownerId" | "createdAt" | "updatedAt" | "owner">
+    >,
+  ) => Promise<ZcashParams>;
+  deleteZcashParams: (accountName: string) => Promise<void>;
+  upsertZcashParams: (
+    data: Omit<
+      ZcashParams,
+      "id" | "ownerId" | "createdAt" | "updatedAt" | "owner"
+    >,
+  ) => Promise<ZcashParams>;
+  testZcashConnection: (
+    accountName: string,
+  ) => Promise<{ success: boolean; message: string; data?: any }>;
+  importWallet: (
+    data: ImportWalletData,
+  ) => Promise<{ success: boolean; message: string; data?: any }>;
 
   // Users
   users: User[];
@@ -141,6 +197,325 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
   const [paymentIDs, setPaymentIDs] = useState<string[] | undefined>(undefined);
   const [categories, setCategories] = useState<BountyCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [zcashParams, setZcashParams] = useState<ZcashParams[]>([]);
+  const [zcashParamsLoading, setZcashParamsLoading] = useState(false);
+
+  // Helper function to get auth headers
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("authToken");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  };
+
+  // ==================== Zcash Params Functions ====================
+
+  // Import wallet with seed phrase
+  const importWallet = async (
+    data: ImportWalletData,
+  ): Promise<{ success: boolean; message: string; data?: any }> => {
+    if (!currentUser) {
+      return { success: false, message: "User not authenticated" };
+    }
+
+    try {
+      const res = await fetch(`${backendUrl}/api/zcash/import-wallet`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      const response = await res.json();
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: response.message || "Failed to import wallet",
+        };
+      }
+
+      // Add the new wallet config to local state
+      if (response.data) {
+        setZcashParams((prev) => [...prev, response.data]);
+      }
+
+      // Refresh Zcash params
+      await fetchZcashParams();
+
+      return {
+        success: true,
+        message: response.message || "Wallet imported successfully",
+        data: response.data,
+      };
+    } catch (error) {
+      console.error("Failed to import wallet:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  };
+
+  // Fetch all Zcash params for the current user
+  const fetchZcashParams = async () => {
+    if (!currentUser) return;
+
+    setZcashParamsLoading(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/zcash/params`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch Zcash parameters");
+
+      const response = await res.json();
+      setZcashParams(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch Zcash parameters:", error);
+      setZcashParams([]);
+    } finally {
+      setZcashParamsLoading(false);
+    }
+  };
+
+  // Fetch all Zcash params for all users (admin only)
+  const fetchAllZcashParams = async () => {
+    if (!currentUser || currentUser.role !== "ADMIN") return;
+
+    setZcashParamsLoading(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/zcash/params/all`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch all Zcash parameters");
+
+      const response = await res.json();
+      setZcashParams(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch all Zcash parameters:", error);
+      setZcashParams([]);
+    } finally {
+      setZcashParamsLoading(false);
+    }
+  };
+
+  // Get a specific Zcash param by account name
+  const getZcashParam = async (
+    accountName: string,
+  ): Promise<ZcashParams | null> => {
+    if (!currentUser) return null;
+
+    try {
+      const res = await fetch(`${backendUrl}/api/zcash/params/${accountName}`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!res.ok) {
+        if (res.status === 404) return null;
+        throw new Error("Failed to fetch Zcash parameter");
+      }
+
+      const response = await res.json();
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch Zcash parameter:", error);
+      return null;
+    }
+  };
+
+  // Create new Zcash params
+  const createZcashParams = async (
+    data: Omit<
+      ZcashParams,
+      "id" | "ownerId" | "createdAt" | "updatedAt" | "owner"
+    >,
+  ): Promise<ZcashParams> => {
+    if (!currentUser) throw new Error("User not authenticated");
+
+    try {
+      const res = await fetch(`${backendUrl}/api/zcash/params`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.message || "Failed to create Zcash parameters",
+        );
+      }
+
+      const response = await res.json();
+      const newParam = response.data;
+
+      // Update local state
+      setZcashParams((prev) => [...prev, newParam]);
+
+      return newParam;
+    } catch (error) {
+      console.error("Failed to create Zcash parameters:", error);
+      throw error;
+    }
+  };
+
+  // Update existing Zcash params
+  const updateZcashParams = async (
+    accountName: string,
+    data: Partial<
+      Omit<ZcashParams, "id" | "ownerId" | "createdAt" | "updatedAt" | "owner">
+    >,
+  ): Promise<ZcashParams> => {
+    if (!currentUser) throw new Error("User not authenticated");
+
+    try {
+      const res = await fetch(`${backendUrl}/api/zcash/params/${accountName}`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.message || "Failed to update Zcash parameters",
+        );
+      }
+
+      const response = await res.json();
+      const updatedParam = response.data;
+
+      // Update local state
+      setZcashParams((prev) =>
+        prev.map((param) =>
+          param.accountName === accountName ? updatedParam : param,
+        ),
+      );
+
+      return updatedParam;
+    } catch (error) {
+      console.error("Failed to update Zcash parameters:", error);
+      throw error;
+    }
+  };
+
+  // Delete Zcash params
+  const deleteZcashParams = async (accountName: string): Promise<void> => {
+    if (!currentUser) throw new Error("User not authenticated");
+
+    try {
+      const res = await fetch(`${backendUrl}/api/zcash/params/${accountName}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.message || "Failed to delete Zcash parameters",
+        );
+      }
+
+      // Update local state
+      setZcashParams((prev) =>
+        prev.filter((param) => param.accountName !== accountName),
+      );
+    } catch (error) {
+      console.error("Failed to delete Zcash parameters:", error);
+      throw error;
+    }
+  };
+
+  // Upsert Zcash params (create or update)
+  const upsertZcashParams = async (
+    data: Omit<
+      ZcashParams,
+      "id" | "ownerId" | "createdAt" | "updatedAt" | "owner"
+    >,
+  ): Promise<ZcashParams> => {
+    if (!currentUser) throw new Error("User not authenticated");
+
+    try {
+      const res = await fetch(`${backendUrl}/api/zcash/params/upsert`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to save Zcash parameters");
+      }
+
+      const response = await res.json();
+      const savedParam = response.data;
+
+      // Update local state
+      setZcashParams((prev) => {
+        const existingIndex = prev.findIndex(
+          (param) => param.accountName === data.accountName,
+        );
+        if (existingIndex >= 0) {
+          // Update existing
+          return prev.map((param, idx) =>
+            idx === existingIndex ? savedParam : param,
+          );
+        } else {
+          // Add new
+          return [...prev, savedParam];
+        }
+      });
+
+      return savedParam;
+    } catch (error) {
+      console.error("Failed to upsert Zcash parameters:", error);
+      throw error;
+    }
+  };
+
+  // Test connection to Zcash server
+  const testZcashConnection = async (
+    accountName: string,
+  ): Promise<{ success: boolean; message: string; data?: any }> => {
+    if (!currentUser) {
+      return { success: false, message: "User not authenticated" };
+    }
+
+    try {
+      const res = await fetch(
+        `${backendUrl}/api/zcash/test-connection/${accountName}`,
+        {
+          method: "POST",
+          headers: getAuthHeaders(),
+        },
+      );
+
+      const response = await res.json();
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: response.message || "Failed to test connection",
+        };
+      }
+
+      return {
+        success: true,
+        message: response.message || "Connection successful",
+        data: response.data,
+      };
+    } catch (error) {
+      console.error("Failed to test Zcash connection:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  };
+
+  // ==================== Existing Functions (unchanged) ====================
 
   const authorizeBatchPayment = async (
     bountyId: string,
@@ -234,7 +609,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         setPaymentIDs(data);
         console.log(data);
       }
-      throw new Error("Failed to fetch transaction hashes");
     } catch (error) {
       console.error("Failed to fetch transaction hashes:", error);
     }
@@ -373,15 +747,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
           error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
-  };
-
-  // Helper function to get auth headers
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("authToken");
-    return {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-    };
   };
 
   // Fetch all categories
@@ -736,7 +1101,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
       if (res.ok) {
         const data = await res.json();
-        setBalance(data.spendable_sapling_balance);
+        setBalance(data);
       }
     } catch (error) {
       console.error("Failed to fetch balance:", error);
@@ -754,7 +1119,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
       if (res.ok) {
         const data = await res.json();
-        setAddress(data.sapling);
+        setAddress(data.encoded_address);
       }
     } catch (error) {
       console.error("Failed to fetch balance:", error);
@@ -841,40 +1206,11 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     if (currentUser) {
       fetchUserApplications();
       fetchAllUsersApplications();
+      fetchZcashParams();
     } else {
       setApplications([]);
       setAllApplications([]);
-    }
-  }, [currentUser]);
-
-  // Fetch balance for admin users
-  useEffect(() => {
-    if (currentUser?.role === "ADMIN") {
-      fetchBalance();
-
-      // Optional: Refresh balance every 30 seconds
-      const interval = setInterval(fetchBalance, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setBalance(undefined);
-    }
-  }, [currentUser]);
-
-  // Fetch addresses for admin users
-  useEffect(() => {
-    if (currentUser?.role === "ADMIN") {
-      fetchAddresses();
-    } else {
-      setAddress(undefined);
-    }
-  }, [currentUser]);
-
-  // Fetch transaction hashes for admin users
-  useEffect(() => {
-    if (currentUser?.role === "ADMIN") {
-      fetchTransactionHashes();
-    } else {
-      setPaymentIDs(undefined);
+      setZcashParams([]);
     }
   }, [currentUser]);
 
@@ -926,6 +1262,53 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
           );
           break;
 
+        case "application_created":
+          setApplications((prev) => [...prev, msg.payload]);
+          setAllApplications((prev) => [...prev, msg.payload]);
+          // Update bountyApplications for specific bounty
+          setBountyApplications((prev) => ({
+            ...prev,
+            [msg.payload.bountyId]: [
+              ...(prev[msg.payload.bountyId] || []),
+              msg.payload,
+            ],
+          }));
+          break;
+
+        case "application_updated":
+          setApplications((prev) =>
+            prev.map((app) => (app.id === msg.payload.id ? msg.payload : app)),
+          );
+          setAllApplications((prev) =>
+            prev.map((app) => (app.id === msg.payload.id ? msg.payload : app)),
+          );
+          // Update bountyApplications for specific bounty
+          setBountyApplications((prev) => ({
+            ...prev,
+            [msg.payload.bountyId]: (prev[msg.payload.bountyId] || []).map(
+              (app) => (app.id === msg.payload.id ? msg.payload : app),
+            ),
+          }));
+          // Refresh bounties to update assignee
+          fetchBounties();
+          break;
+
+        case "application_deleted":
+          setApplications((prev) =>
+            prev.filter((app) => app.id !== msg.payload.id),
+          );
+          setAllApplications((prev) =>
+            prev.filter((app) => app.id !== msg.payload.id),
+          );
+          // Update bountyApplications for specific bounty
+          setBountyApplications((prev) => ({
+            ...prev,
+            [msg.payload.bountyId]: (prev[msg.payload.bountyId] || []).filter(
+              (app) => app.id !== msg.payload.id,
+            ),
+          }));
+          break;
+
         case "payment_authorized":
           setBounties((prev) =>
             prev.map((bounty) =>
@@ -965,6 +1348,79 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
           setCategories((prev) =>
             prev.filter((cat) => cat.id !== msg.payload.id),
           );
+          break;
+
+        case "transactions_fetched":
+          // Update transactions list in state if you have one
+          // setTransactions(msg.payload.transactions);
+          console.log("Transactions fetched:", msg.payload);
+          break;
+
+        case "balance_fetched":
+          setBalance(msg.payload.balance);
+          break;
+
+        case "sync_status_checked":
+          // Handle sync status if needed
+          console.log("Sync status:", msg.payload.syncStatus);
+          break;
+
+        case "account_created":
+          // Handle new account creation
+          console.log("Account created:", msg.payload);
+          // Optionally refresh Zcash params
+          fetchZcashParams();
+          break;
+
+        case "addresses_fetched":
+          setAddress(msg.payload.addresses?.encoded_address);
+          break;
+
+        case "payment_authorized":
+          // Refresh bounties and transactions when payment is authorized
+          fetchBounties();
+          fetchTransactionHashes();
+          break;
+
+        case "bounty_payment_authorized":
+          // Update specific bounty with payment authorization
+          setBounties((prev) =>
+            prev.map((bounty) =>
+              bounty.id === msg.payload.id ? msg.payload : bounty,
+            ),
+          );
+          break;
+
+        case "batch_payment_processed":
+          // Refresh bounties and show success notification
+          fetchBounties();
+          fetchTransactionHashes();
+          fetchBalance();
+          console.log("Batch payment processed:", msg.payload);
+          break;
+
+        case "instant_payment_processed":
+          // Refresh bounty and show success notification
+          fetchBounties();
+          fetchTransactionHashes();
+          fetchBalance();
+          console.log("Instant payment processed:", msg.payload);
+          break;
+
+        case "bounty_marked_paid":
+          // Update bounty to show it's been paid
+          setBounties((prev) =>
+            prev.map((bounty) =>
+              bounty.id === msg.payload.id ? msg.payload : bounty,
+            ),
+          );
+          break;
+
+        case "bounty_paid":
+          // Refresh bounties and transactions after payment
+          fetchBounties();
+          fetchTransactionHashes();
+          fetchBalance();
           break;
       }
     };
@@ -1180,6 +1636,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     setApplications([]);
     setAllApplications([]);
     setCategories([]);
+    setZcashParams([]);
   };
 
   // Apply to bounty
@@ -1335,6 +1792,17 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         fetchBalance,
         address,
         fetchAddresses,
+        zcashParams,
+        zcashParamsLoading,
+        fetchZcashParams,
+        fetchAllZcashParams,
+        getZcashParam,
+        createZcashParams,
+        updateZcashParams,
+        deleteZcashParams,
+        upsertZcashParams,
+        testZcashConnection,
+        importWallet,
       }}
     >
       {children}

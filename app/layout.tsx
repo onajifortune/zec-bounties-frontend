@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { BountyProvider } from "@/lib/bounty-context";
+import { ZAddressProvider } from "@/components/address/zaddress-integration-hook";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Suspense } from "react";
 import "./globals.css";
@@ -28,7 +29,9 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <Suspense fallback={<div>Loading...</div>}>
-            <BountyProvider>{children}</BountyProvider>
+            <BountyProvider>
+              <ZAddressProvider>{children}</ZAddressProvider>
+            </BountyProvider>
           </Suspense>
           <Analytics />
         </ThemeProvider>

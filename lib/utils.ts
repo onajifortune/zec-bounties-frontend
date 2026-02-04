@@ -11,3 +11,9 @@ export function formatStatus(status: string) {
     .replace(/_/g, " ") // "to do"
     .replace(/\b\w/g, (c) => c.toUpperCase()); // "To Do"
 }
+
+export function formatAddress(str: string, keep = 36) {
+  if (str.length <= keep * 2) return str;
+
+  return str.slice(0, keep) + "...." + str.slice(-keep);
+}

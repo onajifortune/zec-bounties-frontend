@@ -67,6 +67,27 @@ export interface BountyFormData {
   category: string;
 }
 
+export interface ZcashParamsFormData {
+  chain: "mainnet" | "testnet";
+  serverUrl: string;
+  accountName: string;
+}
+
+export interface ZcashParams {
+  id: number;
+  chain: string;
+  serverUrl: string;
+  accountName: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+  owner?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
 export interface PaymentSchedule {
   type: "instant" | "sunday_batch";
   scheduledFor?: Date;

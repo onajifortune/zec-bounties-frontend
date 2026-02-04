@@ -11,6 +11,7 @@ import {
   Wallet,
   Menu,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,7 +48,26 @@ export function AdminNavbar({
   const [topupOpen, setTopupOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [zecBalance] = useState(0.0);
-  const { currentUser, logout } = useBounty();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const { currentUser, logout, balance, fetchBalance, fetchAddresses } =
+    useBounty();
+
+  const handleRefreshBalance = async () => {
+    setIsUpdating(true);
+    try {
+      await fetchAddresses();
+      await fetchBalance();
+      setSuccess("Balance refreshed successfully");
+    } catch (err) {
+      setError("Failed to refresh balance");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <>
@@ -87,7 +107,7 @@ export function AdminNavbar({
           </div>
 
           {/* Desktop Right Side */}
-          <div className="hidden lg:flex items-center gap-3 ml-auto">
+          <div className="hidden lg:flex items-center gap-1 ml-auto">
             <div className="relative max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -105,7 +125,20 @@ export function AdminNavbar({
               onClick={() => setTopupOpen(true)}
             >
               <Wallet className="h-4 w-4" />
-              {zecBalance.toFixed(4)} ZEC
+              {balance
+                ? `${(balance / 1e8).toFixed(4)} ZEC`
+                : `${(0.0).toFixed(4)} ZEC`}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefreshBalance}
+              disabled={isUpdating}
+              className="h-9 w-9"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${isUpdating ? "animate-spin" : ""}`}
+              />
             </Button>
 
             <Button
@@ -229,7 +262,20 @@ export function AdminNavbar({
                     }}
                   >
                     <Wallet className="h-4 w-4" />
-                    {zecBalance.toFixed(4)} ZEC
+                    {balance
+                      ? `${(balance / 1e8).toFixed(4)} ZEC`
+                      : `${(0.0).toFixed(4)} ZEC`}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRefreshBalance}
+                    disabled={isUpdating}
+                    className="h-6 w-6 p-0"
+                  >
+                    <RefreshCw
+                      className={`w-3 h-3 ${isUpdating ? "animate-spin" : ""}`}
+                    />
                   </Button>
 
                   {/* Mobile Notifications */}
