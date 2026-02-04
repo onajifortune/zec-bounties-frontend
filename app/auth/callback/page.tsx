@@ -21,11 +21,20 @@ export default function GithubCallback() {
         .then((res) => res.json())
         .then((data) => {
           setCurrentUser(data.user);
-          router.push("/home");
+
+          // Route based on user role
+          if (data.user.role === "ADMIN") {
+            router.push("/admin");
+          } else if (data.user.role === "CLIENT") {
+            router.push("/home");
+          } else {
+            // Fallback for any other roles
+            router.push("/home");
+          }
         })
         .catch((error) => {
           alert(error);
-          localStorage.removeItem("authToken"); // 🔑 clear stale token
+          localStorage.removeItem("authToken");
           router.push("/login?error=invalid_token");
         });
     } else {
