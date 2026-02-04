@@ -1,9 +1,9 @@
 export const backendUrl =
   process.env.NODE_ENV === "production"
-    ? "https://zec-bounties-backend.onrender.com"
+    ? "https://zechub.zone"
     : "http://localhost:9000";
 
 export const backendWebSpocketUrl =
   process.env.NODE_ENV === "production"
-    ? "wss://zec-bounties-backend.onrender.com/"
+    ? "wss://zechub.zone/"
     : "ws://localhost:9000";
