@@ -20,7 +20,6 @@ import { Label } from "@/components/ui/label";
 import type { Bounty } from "@/lib/types";
 import { useBounty } from "@/lib/bounty-context";
 import {
-  DollarSign,
   CreditCard,
   AlertTriangle,
   CheckCircle,
@@ -42,7 +41,7 @@ export function PaymentAuthorizationModal({
   const [isOpen, setIsOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentType, setPaymentType] = useState<"instant" | "sunday_batch">(
-    "instant"
+    "instant",
   );
 
   // Calculate next Sunday at 10 PM
@@ -106,7 +105,6 @@ export function PaymentAuthorizationModal({
                   Payment Amount:
                 </span>
                 <div className="flex items-center font-bold text-lg">
-                  <DollarSign className="w-4 h-4 mr-1" />
                   {bounty.bountyAmount} ZEC
                 </div>
               </div>

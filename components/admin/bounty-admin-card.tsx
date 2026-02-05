@@ -33,7 +33,6 @@ import { useBounty } from "@/lib/bounty-context";
 import {
   Calendar,
   Clock,
-  DollarSign,
   User,
   CheckCircle,
   XCircle,
@@ -331,7 +330,6 @@ export function BountyAdminCard({
               variant="outline"
               className="text-[10px] h-5 uppercase tracking-wider text-purple-600 border-purple-200 dark:text-purple-400 dark:border-purple-800 gap-1"
             >
-              <DollarSign className="h-3 w-3" />
               Payment Auth
             </Badge>
           )}
@@ -477,7 +475,6 @@ export function BountyAdminCard({
               variant="outline"
               className="text-[10px] h-5 uppercase tracking-wider text-purple-600 border-purple-200 dark:text-purple-400 dark:border-purple-800 gap-1"
             >
-              <DollarSign className="h-3 w-3" />
               Payment Auth
             </Badge>
           )}
