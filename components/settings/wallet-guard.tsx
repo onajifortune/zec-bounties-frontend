@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, ReactNode } from "react";
 import { ImportWalletModal } from "./import-modal";
 import { backendUrl } from "@/lib/configENV";
