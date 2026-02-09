@@ -24,6 +24,7 @@ export default function MarketplacePage() {
   const [isNewBountyModalOpen, setIsNewBountyModalOpen] = useState(false);
   const [selectedBounty, setSelectedBounty] = useState<Bounty | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [displayCount, setDisplayCount] = useState(6);
 
   // Convert categories to display format (add "All" option)
   const displayCategories = ["All", ...categories.map((cat) => cat.name)];
@@ -60,6 +61,15 @@ export default function MarketplacePage() {
     );
   }, [bounties, searchQuery, activeCategory, statusFilter]);
 
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(6);
+  }, [activeCategory, searchQuery, statusFilter]);
+
+  // Get bounties to display (limited by displayCount)
+  const displayedBounties = filteredBounties.slice(0, displayCount);
+  const hasMore = displayCount < filteredBounties.length;
+
   // Get count for each category
   const getCategoryCount = (categoryName: string) => {
     if (categoryName === "All") {
@@ -67,6 +77,10 @@ export default function MarketplacePage() {
     }
     return bounties.filter((bounty) => bounty.categoryId === categoryName)
       .length;
+  };
+
+  const handleLoadMore = () => {
+    setDisplayCount((prev) => prev + 6);
   };
 
   return (
@@ -198,7 +212,7 @@ export default function MarketplacePage() {
                       : "flex flex-col gap-4"
                   }
                 >
-                  {filteredBounties.map((bounty) => (
+                  {displayedBounties.map((bounty) => (
                     <BountyCard
                       key={bounty.id}
                       bounty={bounty}
@@ -220,14 +234,17 @@ export default function MarketplacePage() {
                 </div>
               )}
 
-              <div className="pt-8 flex justify-center">
-                <Button
-                  variant="outline"
-                  className="rounded-full px-8 bg-transparent"
-                >
-                  Load More Bounties
-                </Button>
-              </div>
+              {hasMore && (
+                <div className="pt-8 flex justify-center">
+                  <Button
+                    variant="outline"
+                    className="rounded-full px-8 bg-transparent"
+                    onClick={handleLoadMore}
+                  >
+                    Load More Bounties
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

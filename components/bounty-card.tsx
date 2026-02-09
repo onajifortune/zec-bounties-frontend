@@ -75,8 +75,7 @@ export function BountyCard({
 
   // Check if user can submit work (assigned and bounty is in progress)
   const canSubmitWork =
-    isAssignedToCurrentUser &&
-    (bounty.status === "TO_DO" || bounty.status === "IN_PROGRESS");
+    isAssignedToCurrentUser && bounty.status === "IN_PROGRESS";
 
   // Check if user can apply
   const canApply =

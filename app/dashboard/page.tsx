@@ -95,7 +95,7 @@ export default function ClientDashboard() {
                       Total Rewards
                     </p>
                     <p className="text-2xl font-bold text-foreground mt-1">
-                      ${stats.totalRewards.toLocaleString()}
+                      {stats.totalRewards.toLocaleString()} ZEC
                     </p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-primary opacity-20" />
@@ -214,7 +214,7 @@ export default function ClientDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-foreground">
-                          ${bounty.bountyAmount}
+                          {bounty.bountyAmount}
                         </p>
                         <p className="text-xs text-muted-foreground">ZEC</p>
                       </div>

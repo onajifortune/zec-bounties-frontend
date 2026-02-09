@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,17 +18,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Wallet, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import {
+  Wallet,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  Lock,
+} from "lucide-react";
 import { useBounty } from "@/lib/bounty-context";
 
 interface ImportWalletModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isRequired?: boolean; // New prop to indicate if modal is required
 }
 
 export function ImportWalletModal({
   open,
   onOpenChange,
+  isRequired = false,
 }: ImportWalletModalProps) {
   const { importWallet } = useBounty();
 
@@ -145,6 +154,11 @@ export function ImportWalletModal({
   };
 
   const handleClose = () => {
+    // Prevent closing if wallet is required and not yet imported
+    if (isRequired) {
+      return;
+    }
+
     if (!isImporting) {
       setFormData({
         accountName: "",
@@ -160,19 +174,50 @@ export function ImportWalletModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={isRequired ? undefined : handleClose}>
+      <DialogContent
+        className="max-w-md"
+        onPointerDownOutside={(e) => {
+          if (isRequired) {
+            e.preventDefault();
+          }
+        }}
+        onEscapeKeyDown={(e) => {
+          if (isRequired) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
+            {isRequired && <Lock className="w-5 h-5 text-amber-500" />}
             <Wallet className="w-5 h-5" />
-            Import Zcash Wallet
+            {isRequired ? "Wallet Setup Required" : "Import Zcash Wallet"}
           </DialogTitle>
           <DialogDescription>
-            Import an existing wallet using your 24-word seed phrase
+            {isRequired ? (
+              <span className="text-amber-600 font-medium">
+                You must import a wallet to continue. This is required to
+                initialize your Zcash parameters.
+              </span>
+            ) : (
+              "Import an existing wallet using your 24-word seed phrase"
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Required Warning */}
+          {isRequired && (
+            <Alert className="border-amber-500 bg-amber-50">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                No Zcash parameters found. Please import your wallet to set up
+                your account.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Status Alert */}
           {importStatus.type && (
             <Alert
@@ -237,7 +282,7 @@ export function ImportWalletModal({
                     }))
                   }
                   disabled={isImporting}
-                  className="min-h-[100px] pr-10"
+                  className="pr-10"
                 />
               )}
               <Button
@@ -318,13 +363,15 @@ export function ImportWalletModal({
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              disabled={isImporting}
-            >
-              Cancel
-            </Button>
+            {!isRequired && (
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                disabled={isImporting}
+              >
+                Cancel
+              </Button>
+            )}
             <Button onClick={handleImport} disabled={isImporting}>
               {isImporting ? (
                 <>
