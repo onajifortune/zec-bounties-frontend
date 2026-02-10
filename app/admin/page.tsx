@@ -309,7 +309,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="flex gap-2 mb-8 border-b border-border">
+            <div className="grid grid-cols-2 imd:grid-cols-3 gap-2 mb-8 border-b border-border">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -686,7 +686,7 @@ export default function AdminDashboard() {
 
             {activeTab === "payments" && (
               <div className="space-y-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="grid gap-4 imd:flex justify-between items-center mb-6">
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                     Completed Bounties Awaiting Payment (
                     {completedBounties.length})

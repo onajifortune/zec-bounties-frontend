@@ -190,7 +190,7 @@ export function GlobalSettingsModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="flex flex-col sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-2">
               <Server className="w-6 h-6" />
@@ -337,7 +337,7 @@ export function GlobalSettingsModal({
                               >
                                 {config.chain || "mainnet"}
                               </Badge>
-                              <span className="text-xs text-muted-foreground font-mono truncate max-w-[200px]">
+                              <span className="hidden imd:flex text-xs text-muted-foreground font-mono truncate max-w-[200px]">
                                 {config.serverUrl || "https://zec.rocks:443"}
                               </span>
                             </div>

@@ -42,7 +42,7 @@ export function ZAddressCollectionModal({
 
   // Validate Z-address format
   const validateZAddress = async (
-    address: string
+    address: string,
   ): Promise<boolean | undefined> => {
     // Basic validation for Zcash shielded addresses
     // Sapling addresses start with "zs1" and are 78 characters long
@@ -60,14 +60,12 @@ export function ZAddressCollectionModal({
     e.preventDefault();
 
     if (!zAddress.trim()) {
-      setError("Z-address is required to continue");
+      setError("A shielded address is required to continue");
       return;
     }
 
     if (!(await validateZAddress(zAddress.trim()))) {
-      setError(
-        "Please enter a valid Zcash shielded address (starts with 'zs1' or 'zc')"
-      );
+      setError("Please enter a valid Zcash shielded address");
       return;
     }
 
@@ -83,7 +81,7 @@ export function ZAddressCollectionModal({
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to save Z-address. Please try again."
+          : "Failed to save shielded address. Please try again.",
       );
       setIsSubmitting(false);
     }
@@ -150,7 +148,7 @@ export function ZAddressCollectionModal({
             <Input
               id="zaddress"
               type="text"
-              placeholder="zs1abc... or zcdef..."
+              placeholder="u1......."
               value={zAddress}
               onChange={(e) => {
                 setZAddress(e.target.value);
@@ -162,8 +160,7 @@ export function ZAddressCollectionModal({
               autoFocus
             />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Enter your Zcash shielded address (starts with 'zs1' for Sapling
-              or 'zc' for Sprout)
+              Enter your Zcash shielded address
             </p>
           </div>
 
@@ -211,7 +208,7 @@ export function ZAddressCollectionModal({
             <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
               <p>• Open your Zcash wallet (Ywallet, Zecwallet, etc.)</p>
               <p>• Look for "Receive" or "Shielded Address"</p>
-              <p>• Copy the address that starts with 'zs1' or 'zc'</p>
+              <p>• Copy the address that starts with </p>
               <p>• Paste it in the field above</p>
             </div>
           </div>
