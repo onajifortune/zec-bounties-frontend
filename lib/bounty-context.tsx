@@ -607,7 +607,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         setPaymentIDs(data);
-        console.log(data);
       }
     } catch (error) {
       console.error("Failed to fetch transaction hashes:", error);
@@ -1231,7 +1230,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
-      console.log(msg);
 
       switch (msg.type) {
         case "new_bounty":
@@ -1353,7 +1351,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         case "transactions_fetched":
           // Update transactions list in state if you have one
           // setTransactions(msg.payload.transactions);
-          console.log("Transactions fetched:", msg.payload);
           break;
 
         case "balance_fetched":
@@ -1362,12 +1359,10 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
         case "sync_status_checked":
           // Handle sync status if needed
-          console.log("Sync status:", msg.payload.syncStatus);
           break;
 
         case "account_created":
           // Handle new account creation
-          console.log("Account created:", msg.payload);
           // Optionally refresh Zcash params
           fetchZcashParams();
           break;
@@ -1396,7 +1391,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
           fetchBounties();
           fetchTransactionHashes();
           fetchBalance();
-          console.log("Batch payment processed:", msg.payload);
           break;
 
         case "instant_payment_processed":
@@ -1404,7 +1398,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
           fetchBounties();
           fetchTransactionHashes();
           fetchBalance();
-          console.log("Instant payment processed:", msg.payload);
           break;
 
         case "bounty_marked_paid":
@@ -1429,9 +1422,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
       console.error("WebSocket error:", error);
     };
 
-    ws.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
+    ws.onclose = () => {};
 
     return () => {
       if (ws.readyState === WebSocket.OPEN) {
@@ -1451,7 +1442,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) throw new Error("Failed to fetch bounties");
 
       const data = await res.json();
-      console.log(data);
       setBounties(data);
     } catch (error) {
       console.error("Failed to fetch bounties:", error);
@@ -1612,7 +1602,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("currentUser", JSON.stringify(data.user));
-      console.log(data.user);
 
       setCurrentUser(data.user);
 

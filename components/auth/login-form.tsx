@@ -33,15 +33,11 @@ export function LoginForm() {
     try {
       const result = await login(email, password);
 
-      console.log("Login result:", result);
-
       if (result.success && result.user) {
         // Check user role and redirect accordingly
         if (result.user.role === "ADMIN") {
-          console.log("Redirecting to /admin");
           router.push("/admin");
         } else {
-          console.log("Redirecting to /home");
           router.push("/home");
         }
       } else {
@@ -54,8 +50,6 @@ export function LoginForm() {
       setIsLoading(false);
     }
   };
-
-  console.log(process.env.NODE_ENV, backendUrl);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">

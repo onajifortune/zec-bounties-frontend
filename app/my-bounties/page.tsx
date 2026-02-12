@@ -18,8 +18,6 @@ export default function MyBountiesPage() {
           (b) =>
             b.createdBy === currentUser?.id || b.assignee === currentUser?.id,
         );
-
-  bounties.map((bounty) => console.log(bounty.assignee === currentUser?.id));
   const activeBounties = userBounties.filter(
     (b) => b.status === "IN_PROGRESS" || b.status === "IN_REVIEW",
   );

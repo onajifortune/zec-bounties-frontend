@@ -9,8 +9,6 @@ export default function HomePage() {
   const { currentUser } = useBounty();
   const router = useRouter();
 
-  console.log(currentUser);
-
   useEffect(() => {
     if (currentUser) {
       router.push("/dashboard");

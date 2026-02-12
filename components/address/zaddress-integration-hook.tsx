@@ -54,7 +54,6 @@ export function useZAddressCollection(): UseZAddressCollectionReturn {
     try {
       // Call backend to update user's Z-address
       const result = await zAddressUpdate(zAddress);
-      console.log(result);
 
       // ✅ Close the modal after successful update
       setShowZAddressModal(false);
