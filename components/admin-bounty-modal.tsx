@@ -26,6 +26,7 @@ import { CalendarIcon } from "lucide-react";
 import { useBounty } from "@/lib/bounty-context";
 import type { BountyFormData } from "@/lib/types";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface CreateBountyFormProps {
   onSuccess?: () => void;
@@ -86,6 +87,11 @@ export function AdminBountyModal({
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to create bounty:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

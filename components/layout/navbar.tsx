@@ -11,6 +11,7 @@ import {
   Wallet,
   Menu,
   X,
+  LogIn,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,6 +33,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { WalletTopupModal } from "@/components/wallet-topup-modal";
+import { LoginModal } from "@/components/login/login-modal";
 import { useBounty } from "@/lib/bounty-context";
 
 export function Navbar({
@@ -45,6 +47,7 @@ export function Navbar({
 }) {
   const { theme, setTheme } = useTheme();
   const [topupOpen, setTopupOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [zecBalance] = useState(0.0);
   const { currentUser, logout } = useBounty();
@@ -66,7 +69,7 @@ export function Navbar({
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-4 text-sm font-medium mr-auto">
-            {!isAdmin && (
+            {!isAdmin && currentUser && (
               <Link
                 href="/dashboard"
                 className="transition-colors hover:text-primary"
@@ -74,18 +77,14 @@ export function Navbar({
                 Dashboard
               </Link>
             )}
-            <Link
-              href="/my-bounties"
-              className="transition-colors hover:text-primary"
-            >
-              My Bounties
-            </Link>
-            {/* <Link
-              href="/leaderboard"
-              className="transition-colors hover:text-primary"
-            >
-              Leaderboard
-            </Link> */}
+            {currentUser && (
+              <Link
+                href="/my-bounties"
+                className="transition-colors hover:text-primary"
+              >
+                My Bounties
+              </Link>
+            )}
             {isAdmin && (
               <Link
                 href="/admin"
@@ -131,39 +130,51 @@ export function Navbar({
               <span className="sr-only">Toggle theme</span>
             </Button>
 
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <Bell className="h-4 w-4" />
-            </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={
-                        currentUser?.avatar || "/abstract-geometric-shapes.png"
-                      }
-                      alt="User"
-                    />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
+            {currentUser ? (
+              <>
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Bell className="h-4 w-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>{currentUser?.name}</DropdownMenuLabel>
-                {/* <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Billing</DropdownMenuItem>
-                <DropdownMenuItem>Team</DropdownMenuItem>
-                <DropdownMenuSeparator /> */}
-                <DropdownMenuItem asChild>
-                  <div onClick={logout}>Log out</div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={
+                            currentUser?.avatar ||
+                            "/abstract-geometric-shapes.png"
+                          }
+                          alt="User"
+                        />
+                        <AvatarFallback>
+                          {currentUser?.name?.substring(0, 2).toUpperCase() ||
+                            "JD"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>{currentUser?.name}</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <div onClick={logout}>Log out</div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <Button
+                onClick={() => setLoginOpen(true)}
+                className="gap-2 h-9"
+                variant="default"
+              >
+                <LogIn className="h-4 w-4" />
+                Login
+              </Button>
+            )}
           </div>
 
           {/* Mobile Right Side */}
@@ -203,119 +214,112 @@ export function Navbar({
                     />
                   </div>
 
-                  {/* Mobile Navigation Links */}
-                  <div className="flex flex-col gap-2">
-                    {!isAdmin && (
-                      <Link
-                        href="/dashboard"
-                        className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Dashboard
-                      </Link>
-                    )}
-                    <Link
-                      href="/my-bounties"
-                      className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      My Bounties
-                    </Link>
-                    {/* <Link
-                      href="/leaderboard"
-                      className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Leaderboard
-                    </Link> */}
-                    {isAdmin && (
-                      <Link
-                        href="/admin"
-                        className="px-3 py-2 text-sm font-bold text-primary rounded-md hover:bg-accent transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Admin Console
-                      </Link>
-                    )}
-                  </div>
+                  {currentUser ? (
+                    <>
+                      {/* Mobile Navigation Links */}
+                      <div className="flex flex-col gap-2">
+                        {!isAdmin && (
+                          <Link
+                            href="/dashboard"
+                            className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            Dashboard
+                          </Link>
+                        )}
+                        <Link
+                          href="/my-bounties"
+                          className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          My Bounties
+                        </Link>
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            className="px-3 py-2 text-sm font-bold text-primary rounded-md hover:bg-accent transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            Admin Console
+                          </Link>
+                        )}
+                      </div>
 
-                  {/* Divider */}
-                  <div className="border-t" />
+                      {/* Divider */}
+                      <div className="border-t" />
 
-                  {/* Mobile Wallet (Admin only) */}
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      className="gap-2 justify-start font-mono"
-                      onClick={() => {
-                        setTopupOpen(true);
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      <Wallet className="h-4 w-4" />
-                      {zecBalance.toFixed(4)} ZEC
-                    </Button>
+                      {/* Mobile Wallet (Admin only) */}
+                      {isAdmin && (
+                        <Button
+                          variant="outline"
+                          className="gap-2 justify-start font-mono"
+                          onClick={() => {
+                            setTopupOpen(true);
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          <Wallet className="h-4 w-4" />
+                          {zecBalance.toFixed(4)} ZEC
+                        </Button>
+                      )}
+
+                      {/* Mobile Notifications */}
+                      <Button variant="outline" className="gap-2 justify-start">
+                        <Bell className="h-4 w-4" />
+                        Notifications
+                      </Button>
+
+                      {/* Divider */}
+                      <div className="border-t" />
+
+                      {/* Mobile User Menu */}
+                      <div className="flex items-center gap-3 px-3 py-2">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src={
+                              currentUser?.avatar ||
+                              "/abstract-geometric-shapes.png"
+                            }
+                            alt="User"
+                          />
+                          <AvatarFallback>
+                            {currentUser?.name?.substring(0, 2).toUpperCase() ||
+                              "JD"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {currentUser?.name}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <div className="border-t my-2" />
+                        <Button
+                          variant="ghost"
+                          className="justify-start text-destructive"
+                          asChild
+                        >
+                          <div onClick={logout}>Log out</div>
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Login Button for Mobile */}
+                      <Button
+                        onClick={() => {
+                          setLoginOpen(true);
+                          setMobileMenuOpen(false);
+                        }}
+                        className="gap-2 w-full"
+                      >
+                        <LogIn className="h-4 w-4" />
+                        Login
+                      </Button>
+                    </>
                   )}
-
-                  {/* Mobile Notifications */}
-                  <Button variant="outline" className="gap-2 justify-start">
-                    <Bell className="h-4 w-4" />
-                    Notifications
-                  </Button>
-
-                  {/* Divider */}
-                  <div className="border-t" />
-
-                  {/* Mobile User Menu */}
-                  <div className="flex items-center gap-3 px-3 py-2">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={
-                          currentUser?.avatar ||
-                          "/abstract-geometric-shapes.png"
-                        }
-                        alt="User"
-                      />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
-                        {currentUser?.name}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    {/* <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Profile
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Billing
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Team
-                    </Button> */}
-                    <div className="border-t my-2" />
-                    <Button
-                      variant="ghost"
-                      className="justify-start text-destructive"
-                      asChild
-                    >
-                      <div onClick={logout}>Log out</div>
-                    </Button>
-                  </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -325,6 +329,7 @@ export function Navbar({
       {isAdmin && (
         <WalletTopupModal open={topupOpen} onOpenChange={setTopupOpen} />
       )}
+      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
     </>
   );
 }

@@ -7,6 +7,7 @@ import { ZAddressProvider } from "@/components/address/zaddress-integration-hook
 import { ThemeProvider } from "@/components/theme-provider";
 import { Suspense } from "react";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -30,7 +31,10 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <Suspense fallback={<div>Loading...</div>}>
             <BountyProvider>
-              <ZAddressProvider>{children}</ZAddressProvider>
+              <ZAddressProvider>
+                {children}
+                <Toaster position="top-right" richColors />
+              </ZAddressProvider>
             </BountyProvider>
           </Suspense>
           <Analytics />

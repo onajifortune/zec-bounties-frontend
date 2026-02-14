@@ -24,6 +24,7 @@ import type { BountyStatus } from "@/lib/types";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { Input } from "@/components/ui/input";
 import { WalletGuard } from "@/components/settings/wallet-guard";
+import { toast } from "sonner";
 
 export default function MarketplacePage() {
   const { bounties, currentUser, categories, createCategory } = useBounty();
@@ -56,6 +57,11 @@ export default function MarketplacePage() {
       setCategoryError("");
     } catch (error) {
       console.error("Failed to create category:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
       setCategoryError(
         error instanceof Error ? error.message : "Failed to create category",
       );

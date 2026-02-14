@@ -136,7 +136,7 @@ export function ZAddressCollectionModal({
           <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
             <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             <AlertDescription className="text-blue-800 dark:text-blue-300">
-              Your Z-address is required to receive ZEC payments for completed
+              Shielded address is required to receive ZEC payments for completed
               bounties. This ensures secure and private transactions.
             </AlertDescription>
           </Alert>
@@ -203,7 +203,7 @@ export function ZAddressCollectionModal({
         <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Need help finding your Z-address?
+              Need help finding your shielded address?
             </h4>
             <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
               <p>• Open your Zcash wallet (Ywallet, Zecwallet, etc.)</p>

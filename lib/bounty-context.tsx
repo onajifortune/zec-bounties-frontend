@@ -1067,6 +1067,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
   };
 
   const fetchWorkSubmissions = async (bountyId: string) => {
+    console.log(currentUser);
     if (!currentUser) throw new Error("User not authenticated");
 
     try {
@@ -1170,6 +1171,9 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
   // Initialize auth and fetch data
   useEffect(() => {
     const initializeAuth = async () => {
+      // Fetch bounties, users, and categories regardless of auth status
+      await Promise.all([fetchBounties(), fetchUsers(), fetchCategories()]);
+
       const savedToken = localStorage.getItem("authToken");
 
       if (savedToken) {
@@ -1183,9 +1187,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
           const data = await res.json();
           setCurrentUser(data.user);
           localStorage.setItem("currentUser", JSON.stringify(data.user));
-
-          // Fetch bounties, users, categories, and applications after successful auth
-          await Promise.all([fetchBounties(), fetchUsers(), fetchCategories()]);
         } catch (error) {
           console.error("Token validation failed:", error);
           localStorage.removeItem("authToken");
@@ -1436,7 +1437,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     setBountiesLoading(true);
     try {
       const res = await fetch(`${backendUrl}/api/bounties`, {
-        headers: getAuthHeaders(),
+        // headers: getAuthHeaders(),
       });
 
       if (!res.ok) throw new Error("Failed to fetch bounties");

@@ -65,6 +65,7 @@ import { GlobalSettingsModal } from "@/components/settings/global-settings-modal
 import { PaymentTxIdsTable } from "@/components/transactions/payment-tx-table";
 import { BountyAdminCard } from "@/components/admin/bounty-admin-card";
 import { WalletGuard } from "@/components/settings/wallet-guard";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   const {
@@ -111,6 +112,11 @@ export default function AdminDashboard() {
             `Failed to load submissions for bounty ${bounty.id}:`,
             error,
           );
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : "Failed to submit work. Please try again.";
+          toast.error(errorMessage);
         }
       }
       setAllSubmissions(allSubs);
@@ -164,6 +170,11 @@ export default function AdminDashboard() {
       await loadWorkSubmissions();
     } catch (error) {
       console.error("Failed to review submission:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsUpdating(false);
     }
@@ -196,6 +207,11 @@ export default function AdminDashboard() {
       await fetchTransactionHashes();
     } catch (error) {
       console.error("Failed to fetch transaction hashes:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsFetchingTxHashes(false);
     }
@@ -211,6 +227,11 @@ export default function AdminDashboard() {
       setTimeout(() => setPaymentSuccess(false), 3000);
     } catch (error) {
       console.error("Payment authorization failed:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsUpdating(false);
     }

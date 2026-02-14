@@ -27,6 +27,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { format, nextSunday, setHours, setMinutes } from "date-fns";
+import { toast } from "sonner";
 
 interface PaymentAuthorizationModalProps {
   bounty: Bounty;
@@ -63,6 +64,11 @@ export function PaymentAuthorizationModal({
       setIsOpen(false);
     } catch (error) {
       console.error("Payment authorization failed:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsProcessing(false);
     }

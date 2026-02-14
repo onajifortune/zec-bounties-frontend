@@ -54,6 +54,7 @@ import { format } from "date-fns";
 import { formatStatus } from "@/lib/utils";
 import { PaymentAuthorizationModal } from "./payment-authorization-modal";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 interface UnifiedAdminBountyCardProps {
   bounty: Bounty;
@@ -169,6 +170,11 @@ export function BountyAdminCard({
       setWorkSubmissions(submissions);
     } catch (error) {
       console.error("Failed to load work submissions:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
       setWorkSubmissions([]);
     } finally {
       setSubmissionsLoading(false);
@@ -243,6 +249,11 @@ export function BountyAdminCard({
       await loadWorkSubmissions();
     } catch (error) {
       console.error("Failed to review submission:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsUpdating(false);
     }

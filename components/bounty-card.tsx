@@ -31,6 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export function BountyCard({
   bounty,
@@ -104,6 +105,11 @@ export function BountyCard({
       setIsApplicationDialogOpen(false);
     } catch (error) {
       console.error("Failed to apply:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -122,6 +128,11 @@ export function BountyCard({
       setIsSubmissionDialogOpen(false);
     } catch (error) {
       console.error("Failed to submit work:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

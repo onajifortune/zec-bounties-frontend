@@ -90,7 +90,11 @@ export function BountyDetailModal({
       toast.success("Application submitted successfully!");
     } catch (error) {
       console.error("Failed to apply:", error);
-      toast.error("Failed to submit application");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsApplying(false);
     }
@@ -112,7 +116,11 @@ export function BountyDetailModal({
       toast.success("Work submitted successfully!");
     } catch (error) {
       console.error("Failed to submit work:", error);
-      toast.error("Failed to submit work");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

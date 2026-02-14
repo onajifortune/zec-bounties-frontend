@@ -84,171 +84,163 @@ export default function MarketplacePage() {
   };
 
   return (
-    <ProtectedRoute>
-      <main className="min-h-screen bg-background text-foreground">
-        <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+    // <ProtectedRoute>
+    <main className="min-h-screen bg-background text-foreground">
+      <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-        <div className="imd:container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div className="space-y-2">
-              <h1 className="text-4xl font-extrabold tracking-tight">
-                Welcome!
-              </h1>
-              <p className="text-muted-foreground text-lg max-w-2xl">
-                Complete tasks to earn ZEC. You could also create yours and get
-                ZEC for it.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                className="rounded-full shadow-lg shadow-primary/20"
-                onClick={() => setIsNewBountyModalOpen(true)}
-              >
-                <Plus className="mr-2 h-4 w-4" /> New Bounty
-              </Button>
-              <Link href="/my-bounties">
-                <Button
-                  variant="outline"
-                  className="rounded-full bg-transparent"
-                >
-                  My Submissions <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
+      <div className="imd:container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-extrabold tracking-tight">Welcome!</h1>
+            <p className="text-muted-foreground text-lg max-w-2xl">
+              Complete tasks to earn ZEC. You could also create yours and get
+              ZEC for it.
+            </p>
           </div>
-
-          <NewBountyModal
-            open={isNewBountyModalOpen}
-            onOpenChange={setIsNewBountyModalOpen}
-            onSuccess={() => setIsNewBountyModalOpen(false)}
-            onCancel={() => setIsNewBountyModalOpen(false)}
-          />
-
-          <BountyDetailModal
-            bounty={selectedBounty}
-            open={isDetailModalOpen}
-            onOpenChange={setIsDetailModalOpen}
-          />
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar filters */}
-            <aside className="space-y-8">
-              <div>
-                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                  <Filter className="h-4 w-4" /> Categories
-                </h3>
-                <div className="flex flex-col gap-1">
-                  {displayCategories.map((cat) => (
-                    <Button
-                      key={cat}
-                      variant={activeCategory === cat ? "secondary" : "ghost"}
-                      onClick={() => setActiveCategory(cat)}
-                      className={`justify-start px-3 h-9 ${
-                        activeCategory === cat
-                          ? "font-bold text-primary"
-                          : "text-muted-foreground hover:text-primary"
-                      }`}
-                    >
-                      {cat}
-                      <Badge
-                        variant="secondary"
-                        className="ml-auto text-[10px]"
-                      >
-                        {getCategoryCount(cat)}
-                      </Badge>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-xl border bg-card/30 p-4 border-dashed hidden">
-                <h4 className="font-semibold text-sm mb-2">Become a Partner</h4>
-                <p className="text-xs text-muted-foreground mb-4">
-                  List your technical challenges and find top-tier developers.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs bg-transparent"
-                >
-                  Integrations Console
-                </Button>
-              </div>
-            </aside>
-
-            {/* Main content */}
-            <div className="lg:col-span-3 space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b">
-                <h2 className="text-xl font-bold">
-                  {activeCategory === "All"
-                    ? "All Bounties"
-                    : `${activeCategory} Bounties`}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={viewMode === "grid" ? "secondary" : "ghost"}
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => setViewMode("grid")}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "secondary" : "ghost"}
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => setViewMode("list")}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {filteredBounties.length > 0 ? (
-                <div
-                  className={
-                    viewMode === "grid"
-                      ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-                      : "flex flex-col gap-4"
-                  }
-                >
-                  {displayedBounties.map((bounty) => (
-                    <BountyCard
-                      key={bounty.id}
-                      bounty={bounty}
-                      viewMode={viewMode}
-                      onClick={() => {
-                        setSelectedBounty(bounty);
-                        setIsDetailModalOpen(true);
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20 border rounded-xl bg-muted/20">
-                  <p className="text-muted-foreground">
-                    No bounties found
-                    {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
-                    {searchQuery ? " matching your search" : ""}.
-                  </p>
-                </div>
-              )}
-
-              {hasMore && (
-                <div className="pt-8 flex justify-center">
-                  <Button
-                    variant="outline"
-                    className="rounded-full px-8 bg-transparent"
-                    onClick={handleLoadMore}
-                  >
-                    Load More Bounties
-                  </Button>
-                </div>
-              )}
-            </div>
+          <div className="flex gap-3">
+            <Button
+              className="rounded-full shadow-lg shadow-primary/20"
+              onClick={() => setIsNewBountyModalOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" /> New Bounty
+            </Button>
+            <Link href="/my-bounties">
+              <Button variant="outline" className="rounded-full bg-transparent">
+                My Submissions <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
-      </main>
-    </ProtectedRoute>
+
+        <NewBountyModal
+          open={isNewBountyModalOpen}
+          onOpenChange={setIsNewBountyModalOpen}
+          onSuccess={() => setIsNewBountyModalOpen(false)}
+          onCancel={() => setIsNewBountyModalOpen(false)}
+        />
+
+        <BountyDetailModal
+          bounty={selectedBounty}
+          open={isDetailModalOpen}
+          onOpenChange={setIsDetailModalOpen}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar filters */}
+          <aside className="space-y-8">
+            <div>
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                <Filter className="h-4 w-4" /> Categories
+              </h3>
+              <div className="flex flex-col gap-1">
+                {displayCategories.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={activeCategory === cat ? "secondary" : "ghost"}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`justify-start px-3 h-9 ${
+                      activeCategory === cat
+                        ? "font-bold text-primary"
+                        : "text-muted-foreground hover:text-primary"
+                    }`}
+                  >
+                    {cat}
+                    <Badge variant="secondary" className="ml-auto text-[10px]">
+                      {getCategoryCount(cat)}
+                    </Badge>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-card/30 p-4 border-dashed hidden">
+              <h4 className="font-semibold text-sm mb-2">Become a Partner</h4>
+              <p className="text-xs text-muted-foreground mb-4">
+                List your technical challenges and find top-tier developers.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs bg-transparent"
+              >
+                Integrations Console
+              </Button>
+            </div>
+          </aside>
+
+          {/* Main content */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b">
+              <h2 className="text-xl font-bold">
+                {activeCategory === "All"
+                  ? "All Bounties"
+                  : `${activeCategory} Bounties`}
+              </h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === "grid" ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setViewMode("grid")}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {filteredBounties.length > 0 ? (
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                    : "flex flex-col gap-4"
+                }
+              >
+                {displayedBounties.map((bounty) => (
+                  <BountyCard
+                    key={bounty.id}
+                    bounty={bounty}
+                    viewMode={viewMode}
+                    onClick={() => {
+                      setSelectedBounty(bounty);
+                      setIsDetailModalOpen(true);
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 border rounded-xl bg-muted/20">
+                <p className="text-muted-foreground">
+                  No bounties found
+                  {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
+                  {searchQuery ? " matching your search" : ""}.
+                </p>
+              </div>
+            )}
+
+            {hasMore && (
+              <div className="pt-8 flex justify-center">
+                <Button
+                  variant="outline"
+                  className="rounded-full px-8 bg-transparent"
+                  onClick={handleLoadMore}
+                >
+                  Load More Bounties
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
+    // </ProtectedRoute>
   );
 }

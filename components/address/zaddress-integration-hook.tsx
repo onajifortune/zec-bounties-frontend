@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useBounty } from "@/lib/bounty-context";
 import { ZAddressCollectionModal } from "./zaddress-collection-modal";
 import { User } from "@/lib/types";
+import { toast } from "sonner";
 
 interface UseZAddressCollectionReturn {
   showZAddressModal: boolean;
@@ -59,6 +60,11 @@ export function useZAddressCollection(): UseZAddressCollectionReturn {
       setShowZAddressModal(false);
     } catch (error) {
       console.error("Failed to update Z-address:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
       throw error; // This will be caught by the modal's error handling
     }
   };

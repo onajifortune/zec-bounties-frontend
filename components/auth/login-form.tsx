@@ -16,6 +16,7 @@ import { Terminal } from "lucide-react";
 import { useBounty } from "@/lib/bounty-context";
 import { useRouter } from "next/navigation";
 import { backendUrl } from "@/lib/configENV";
+import { toast } from "sonner";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -45,6 +46,11 @@ export function LoginForm() {
       }
     } catch (err) {
       console.error("Login error:", err);
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to submit work. Please try again.";
+      toast.error(errorMessage);
       setError("Login failed. Please try again.");
     } finally {
       setIsLoading(false);
