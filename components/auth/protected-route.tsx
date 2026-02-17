@@ -23,7 +23,7 @@ export function ProtectedRoute({
     if (isLoading) return;
 
     if (!currentUser) {
-      router.push("/login");
+      router.push("/home");
       return;
     }
 
